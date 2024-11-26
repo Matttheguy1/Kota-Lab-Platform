@@ -19,8 +19,6 @@ y_servo_pin = 1-20
 x_servo = Servo(x_servo_pin)
 y_servo = Servo(y_servo_pin)
 
-# CV Constants
-
 
 # Function that zeroes the servo
 def zero_servo():
@@ -32,6 +30,7 @@ def zero_servo():
 def set_servos_pos(x_pos, y_pos):
     x_servo.value = x_pos
     y_servo.value = y_pos
+
 
 # PID
 kxP = 0.1
@@ -93,25 +92,25 @@ def find_centroid(image):
     return (cx, cy), image
 
 
-#Function that determines and returns the x and y error
-def find_error(current_x, current_y, centroid):
+# Function that determines and returns the x and y error
+def find_error(x_desired, y_desired, centroid):
     cx = centroid[0]
     cy = centroid[1]
-    x_error = cx - current_x
-    y_error = cy - current_y
+    x_error = cx - x_desired
+    y_error = cy - y_desired
     return x_error, y_error
 
 
 # Example usage
 def main():
+
+    # Start video capture
+    cap = cv2.VideoCapture(0)
     # Get the desired coordinates as integers
     req_x = int(input("Enter x coordinate"))
     req_y = int(input("Enter y coordinate"))
     pid_x.setpoint = req_x
     pid_y.setpoint = req_y
-
-    # Start vide ocapture
-    cap = cv2.VideoCapture(0)
 
     # Loop that constantly updates vision and data
     while True:
@@ -121,16 +120,14 @@ def main():
 
         centroid, annotated_frame = find_centroid(frame)
 
-        x_error, y_error = find_error(req_x, req_y, centroid)
-
-        if centroid:
+        if centroid is not None:
+            x_error, y_error = find_error(req_x, req_y, centroid)
             print(f"Droplet centroid at: {centroid}")
             print(f"Droplet error: {x_error, y_error}")
 
-
         cv2.imshow('Red Droplet Detection', annotated_frame)
-        x_servo.value = pid_x(centroid[0])
-        y_servo.value = pid_y(centroid[1])
+        # x_servo.value = pid_x(centroid[0])
+        # y_servo.value = pid_y(centroid[1])
 
         if cv2.waitKey(1) & 0xFF == ord('q'):
             break
