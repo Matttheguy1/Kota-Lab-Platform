@@ -10,7 +10,7 @@ pi = pigpio.pi()
 
 # Set up the servo on GPIO pin 18
 y_servo = 17
-x_servo = 15
+x_servo = 18
 
 # Define the pulse width range for the servo
 min_PW = 1000  # Minimum pulse width in microseconds
@@ -49,14 +49,15 @@ pid_x = PID(kxP, kxI, kxD, setpoint=0, output_limits=(-1, 1))
 pid_y = PID(kyP, kyI, kyD, setpoint=0, output_limits=(-1, 1))
 
 
-#Moves the motor according to the instructions given by the PID
-def move_droplet(x, y):
+#Moves the motor according to the instructions given by the PID, and the current position
+def adjust_servo(x, y):
     set_x_position(pid_x(x))
     set_y_position(pid_y(y))
+    time.sleep(0.05)
 
 
 
-# Example usage
+
 def main():
 
     # Start video capture
@@ -64,10 +65,12 @@ def main():
     # Get the desired coordinates as integers
     req_x = int(input("Enter x coordinate"))
     req_y = int(input("Enter y coordinate"))
+
+    # Set the PID setpoints based on input
     pid_x.setpoint = req_x
     pid_y.setpoint = req_y
 
-    # Loop that constantly updates vision and data
+    # Loop that constantly updates vision and setpoints
     while True:
         ret, frame = cap.read()
         if not ret:
@@ -83,8 +86,7 @@ def main():
             print(f"Droplet error: {x_error, y_error}")
 
         cv2.imshow('Red Droplet Detection', annotated_frame)
-        # x_servo.value = pid_x(centroid[0])
-        # y_servo.value = pid_y(centroid[1])
+        adjust_servo(centroid[0], centroid[1])
 
         if cv2.waitKey(1) & 0xFF == ord('q'):
             break
