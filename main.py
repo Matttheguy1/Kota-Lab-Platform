@@ -35,13 +35,13 @@ def zero_servo():
 
 # PID
 # Set to 0 everything except p for now
-kyP = 0.1
-kyI = 0
-kyD = 0
+kyP = 0.05
+kyI = 0.0
+kyD = 0.0
 
-kxP = 0.1
-kxI = 0
-kxD = 0
+kxP = 0.05
+kxI = 0.0
+kxD = 0.00
 
 
 pid_x = PID(kxP, kxI, kxD, setpoint=0, output_limits=(-1, 1))
@@ -51,8 +51,9 @@ pid_y = PID(kyP, kyI, kyD, setpoint=0, output_limits=(-1, 1))
 #Moves the motor according to the instructions given by the PID, and the current position
 def adjust_servo(x, y):
     set_x_position(pid_x(x))
-    set_y_position(pid_y(y))
-    time.sleep(0.15)
+    set_y_position(-1*pid_y(y))
+#    the sleep command messes up the framerate because it runs in the camera loop, figure out a better way for this
+#    time.sleep(0.5)
 
 
 
@@ -86,7 +87,7 @@ def main():
 #           print(f"Middle of Frame: {middle_x, middle_y}")
             adjust_servo(centroid[0],centroid[1])
 
-        # cv2.imshow('Red Droplet Detection', annotated_frame)
+        cv2.imshow('Red Droplet Detection', annotated_frame)
 #        adjust_servo(centroid[0], centroid[1])
 
         if cv2.waitKey(1) & 0xFF == ord('q'):
