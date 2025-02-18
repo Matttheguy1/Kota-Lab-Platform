@@ -1,33 +1,31 @@
 import time
 import math
 import cv2
-import pigpio
+from gpiozero import Servo
 import numpy as np
 from simple_pid import PID
 import localization as loc
 
-pi = pigpio.pi()
 
 # Set up the servo on GPIO pin 18
-y_servo = 17
-x_servo = 18
+y_servo = Servo(17)
+x_servo = Servo(18)
 
-# Define the pulse width range for the servo
+# Define the pulse width range for the servo,
+#Deprecated because we switched from pigpio to gpiozero
 min_PW = 1000  # Minimum pulse width in microseconds
 max_PW = 2000  # Maximum pulse width in microseconds
 
 
 # Function that sets the position of the x servo with (-1,1) as the range
 def set_x_position(value):
-    # Convert the input value (-1 to 1) to pulse width
-    pulse_width = ((value + 1) / 2) * (max_PW - min_PW) + min_PW
-    pi.set_servo_pulsewidth(x_servo, pulse_width)
+    # Sets servo to given value
+    x_servo.value = value
 
 # Function that sets the position of the y servo with (-1,1) as the range
 def set_y_position(value):
-    # Convert the input value (-1 to 1) to pulse width
-    pulse_width = ((value + 1) / 2) * (max_PW - min_PW) + min_PW
-    pi.set_servo_pulsewidth(y_servo, pulse_width)
+    # Sets servo to given value
+    y_servo.value = value
 
 # Function that zeroes the servo
 def zero_servo():
@@ -36,13 +34,14 @@ def zero_servo():
 
 
 # PID
+# Set to 0 everything except p for now
 kyP = 0.1
-kyI = 0.1
-kyD = 0.05
+kyI = 0
+kyD = 0
 
 kxP = 0.1
-kxI = 0.1
-kxD = 0.05
+kxI = 0
+kxD = 0
 
 
 pid_x = PID(kxP, kxI, kxD, setpoint=0, output_limits=(-1, 1))
@@ -53,7 +52,7 @@ pid_y = PID(kyP, kyI, kyD, setpoint=0, output_limits=(-1, 1))
 def adjust_servo(x, y):
     set_x_position(pid_x(x))
     set_y_position(pid_y(y))
-    time.sleep(0.05)
+    time.sleep(0.15)
 
 
 
@@ -77,16 +76,18 @@ def main():
             break
 
         centroid, annotated_frame = loc.find_centroid(frame)
-
+#        middle_y, middle_x = img(middle_y, middle_x)
         if centroid is not None:
             x_error, y_error = loc.find_error(req_x, req_y, centroid)
-            set_x_position(pid_x(x_error))
-            set_y_position(pid_y(y_error))
+#           set_x_position(pid_x(x_error))
+#           set_y_position(pid_y(y_error))
             print(f"Droplet centroid at: {centroid}")
             print(f"Droplet error: {x_error, y_error}")
+#           print(f"Middle of Frame: {middle_x, middle_y}")
+            adjust_servo(centroid[0],centroid[1])
 
-        cv2.imshow('Red Droplet Detection', annotated_frame)
-        adjust_servo(centroid[0], centroid[1])
+        # cv2.imshow('Red Droplet Detection', annotated_frame)
+#        adjust_servo(centroid[0], centroid[1])
 
         if cv2.waitKey(1) & 0xFF == ord('q'):
             break
