@@ -5,11 +5,19 @@ from gpiozero import Servo
 import numpy as np
 from simple_pid import PID
 import localization as loc
+import pigpio
 
+pi = pigpio.pi()
+
+# Servo Constants:
+x_servo_pin = 18
+y_servo_pin = 17
 
 # Set up the servo on GPIO pin 18
-y_servo = Servo(17)
-x_servo = Servo(18)
+# y_servo = Servo(17)
+# x_servo = Servo(18)
+
+
 
 # Define the pulse width range for the servo,
 #Deprecated because we switched from pigpio to gpiozero
@@ -17,24 +25,33 @@ min_PW = 1000  # Minimum pulse width in microseconds
 max_PW = 2000  # Maximum pulse width in microseconds
 
 
-# Function that sets the position of the x servo with (-1,1) as the range
-def set_x_position(value):
-    # Sets servo to given value
-    x_servo.value = value
+# # Function that sets the position of the x servo with (-1,1) as the range
+# def set_x_position(value):
+#     # Sets servo to given value
+#     x_servo.value = value
 
-# Function that sets the position of the y servo with (-1,1) as the range
-def set_y_position(value):
-    # Sets servo to given value
-    y_servo.value = value
+# # Function that sets the position of the y servo with (-1,1) as the range
+# def set_y_position(value):
+#     # Sets servo to given value
+#     y_servo.value = value
+
+
+def set_servo_position(gpio_pin, position, min_pulse=500, max_pulse=2500):
+# Ensure position is within range
+    position = max(-1.0, min(1.0, position))
+    # Convert position to pulse width
+    pulse_width = min_pulse + (position + 1) * (max_pulse - min_pulse) / 2
+    # Set servo position
+    pi.set_servo_pulsewidth(gpio_pin, pulse_width)
 
 # Function that zeroes the servo
-def zero_servo():
-    set_y_position(0.1)
-    set_x_position(0.1)
+# def zero_servo():
+#     set_y_position(0.1)
+#     set_x_position(0.1)
 
 
 # PID
-# Set to 0 everything except p for now
+# Set to 0 everything except p for now, current full P control is working.
 kyP = 0.05
 kyI = 0.0
 kyD = 0.0
@@ -50,12 +67,9 @@ pid_y = PID(kyP, kyI, kyD, setpoint=0, output_limits=(-1, 1))
 
 #Moves the motor according to the instructions given by the PID, and the current position
 def adjust_servo(x, y):
-    set_x_position(pid_x(x))
-    set_y_position(-1*pid_y(y))
-#    the sleep command messes up the framerate because it runs in the camera loop, figure out a better way for this
-#    time.sleep(0.5)
-
-
+    set_servo_position(x_servo_pin, pid_x(x))
+    # Has to be -1 because it is reversed
+    set_servo_position(y_servo_pin,-1*pid_y(y))
 
 
 def main():
@@ -77,18 +91,17 @@ def main():
             break
 
         centroid, annotated_frame = loc.find_centroid(frame)
-#        middle_y, middle_x = img(middle_y, middle_x)
         if centroid is not None:
             x_error, y_error = loc.find_error(req_x, req_y, centroid)
-#           set_x_position(pid_x(x_error))
-#           set_y_position(pid_y(y_error))
             print(f"Droplet centroid at: {centroid}")
             print(f"Droplet error: {x_error, y_error}")
-#           print(f"Middle of Frame: {middle_x, middle_y}")
+            if abs(x_error) > 10 and abs(y_error) > 10:
+                print("Droplet centered!")
+                adjust_servo(centroid[0],centroid[1])
+                break
             adjust_servo(centroid[0],centroid[1])
 
         cv2.imshow('Red Droplet Detection', annotated_frame)
-#        adjust_servo(centroid[0], centroid[1])
 
         if cv2.waitKey(1) & 0xFF == ord('q'):
             break
