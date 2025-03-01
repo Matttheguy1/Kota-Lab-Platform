@@ -1,6 +1,6 @@
 import gpiozero as gpi
 from time import sleep
-import keyboard
+#import keyboard
 
 x_servo = gpi.Servo(17)
 y_servo = gpi.Servo(18)
@@ -8,8 +8,8 @@ y_servo = gpi.Servo(18)
 
 # Sets servo to minimum position
 def initial_pos():
-    x_servo.min()
-    y_servo.min()
+    x_servo.mid()
+    y_servo.mid()
 
 
 # pos can take any value from -90 to 90
@@ -29,11 +29,11 @@ def decrease_pos():
 
 
 if __name__ == "__main__":
-    initial_pos()
+    x_servo.min()
 
-keyboard.on_press_key('w', increment_pos())
-keyboard.on_press_key('s', decrease_pos())
-keyboard.wait('esc')
+#keyboard.on_press_key('w', increment_pos())
+#keyboard.on_press_key('s', decrease_pos())
+#keyboard.wait('esc')
 
 
 

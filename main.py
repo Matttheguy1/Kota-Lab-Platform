@@ -6,6 +6,7 @@ import numpy as np
 from simple_pid import PID
 import localization as loc
 import pigpio
+import keyboard
 
 pi = pigpio.pi()
 
@@ -52,11 +53,11 @@ def set_servo_position(gpio_pin, position, min_pulse=500, max_pulse=2500):
 
 # PID
 # Set to 0 everything except p for now, current full P control is working.
-kyP = 0.05
+kyP = 0.0155
 kyI = 0.0
 kyD = 0.0
 
-kxP = 0.05
+kxP = 0.0155
 kxI = 0.0
 kxD = 0.00
 
@@ -76,6 +77,10 @@ def main():
 
     # Start video capture
     cap = cv2.VideoCapture(0)
+    
+    # Zero Servos
+    set_servo_position(x_servo_pin, 0.1)
+    set_servo_position(y_servo_pin, 0.1)
     # Get the desired coordinates as integers
     req_x = int(input("Enter x coordinate"))
     req_y = int(input("Enter y coordinate"))
@@ -83,7 +88,7 @@ def main():
     # Set the PID setpoints based on input
     pid_x.setpoint = req_x
     pid_y.setpoint = req_y
-
+    temp_counter = 0
     # Loop that constantly updates vision and setpoints
     while True:
         ret, frame = cap.read()
@@ -96,15 +101,18 @@ def main():
             print(f"Droplet centroid at: {centroid}")
             print(f"Droplet error: {x_error, y_error}")
             if abs(x_error) > 10 and abs(y_error) > 10:
-                print("Droplet centered!")
                 adjust_servo(centroid[0],centroid[1])
-                break
-            adjust_servo(centroid[0],centroid[1])
+            else:
+                print("Droplet is centered")
+            #adjust_servo(centroid[0],centroid[1])
 
         cv2.imshow('Red Droplet Detection', annotated_frame)
-
+        if temp_counter == 1000:
+            break
         if cv2.waitKey(1) & 0xFF == ord('q'):
             break
+
+        temp_counter+=1
 
     cap.release()
     cv2.destroyAllWindows()

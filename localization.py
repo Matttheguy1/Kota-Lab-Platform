@@ -9,9 +9,9 @@ def find_centroid(image):
     # Define range for red color
     # Red wraps around in HSV, so we need two masks
     lower_red1 = np.array([0, 100, 100])
-    upper_red1 = np.array([10, 255, 255])
-    lower_red2 = np.array([160, 100, 100])
-    upper_red2 = np.array([180, 255, 255])
+    upper_red1 = np.array([10,255,255])
+    lower_red2 = np.array([160,100,100])
+    upper_red2 = np.array([240, 100, 50])
 
     # Create masks for red regions
     mask1 = cv2.inRange(hsv, lower_red1, upper_red1)
