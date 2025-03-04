@@ -7,16 +7,12 @@ def find_centroid(image):
     hsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
 
     # Define range for red color
-    # Red wraps around in HSV, so we need two masks
-    lower_red1 = np.array([0, 100, 100])
-    upper_red1 = np.array([10,255,255])
-    lower_red2 = np.array([160,100,100])
-    upper_red2 = np.array([240, 100, 50])
+    # Define range for blue color
+    lower_blue = np.array([100, 100, 100])
+    upper_blue = np.array([130, 255, 255])
 
-    # Create masks for red regions
-    mask1 = cv2.inRange(hsv, lower_red1, upper_red1)
-    mask2 = cv2.inRange(hsv, lower_red2, upper_red2)
-    mask = cv2.bitwise_or(mask1, mask2)
+    # Create mask for blue regions
+    mask = cv2.inRange(hsv, lower_blue, upper_blue)
 
     # Clean up the mask
     kernel = np.ones((5, 5), np.uint8)
@@ -54,3 +50,18 @@ def find_error(x_desired, y_desired, centroid):
     x_error = cx - x_desired
     y_error = cy - y_desired
     return x_error, y_error
+
+# Function that transforms pixel coordinates to a coordinate with domain (-100,100) and range (-100,100)
+def pixels_to_coordinates(x_pixels,y_pixels):
+    x = ((x_pixels-360)/360) * 100
+    y = ((y_pixels-240)/240) * 100
+    coordinates = (x,y)
+    return coordinates
+
+# Function that transforms coordinates with domain (-100,100) and range (-100,100) to pixel coordinates domain (0,720) and range (0,480)
+def coordinates_to_pixels(x_coordinate,y_coordinate):
+    x_pixel = ((x_coordinate + 100) / 200) * 720  # Scale x from [-100,100] to [0,720]
+    y_pixel = ((y_coordinate + 100) / 200) * 480  # Scale y from [-100,100] to [0,480]
+    pixel_coordinates = (x_pixel,y_pixel)
+    return pixel_coordinates
+
