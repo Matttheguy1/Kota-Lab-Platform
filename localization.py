@@ -8,8 +8,8 @@ def find_centroid(image):
 
     # Define range for red color
     # Define range for blue color
-    lower_blue = np.array([100, 100, 100])
-    upper_blue = np.array([130, 255, 255])
+    lower_blue = np.array([100, 150, 150])
+    upper_blue = np.array([140, 255, 255])
 
     # Create mask for blue regions
     mask = cv2.inRange(hsv, lower_blue, upper_blue)

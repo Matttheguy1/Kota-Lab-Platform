@@ -100,6 +100,8 @@ def main():
             x_error, y_error = loc.find_error(req_x, req_y, centroid)
             print(f"Droplet centroid at: {centroid}")
             print(f"Droplet error: {x_error, y_error}")
+            if temp_counter == 50:
+                cv2.imwrite("annotated_frame.jpg", frame)
             if abs(x_error) > 10 and abs(y_error) > 10:
                 adjust_servo(centroid[0],centroid[1])
             else:
