@@ -18,7 +18,7 @@ y_servo_pin = 17
 headers = ['Time', 'X Position', 'Y Position', 'X Error', 'Y Error']
 
 
-filename = "PID Response.csv"
+filename = "PID Response2.csv"
 def set_servo_position(gpio_pin, position, min_pulse=500, max_pulse=2500):
 # Ensure position is within range
     position = max(-1.0, min(1.0, position))
@@ -56,54 +56,52 @@ def adjust_servo(x, y):
 
 
 def main():
-    with open(filename, 'w') as file:
+    with open(filename, 'w', newline='') as file:
         writer = csv.writer(file)
         writer.writerow(headers)
 
-    # Start video capture
-    cap = cv2.VideoCapture(0)
+        # Start video capture
+        cap = cv2.VideoCapture(0)
     
-    # Zero Servos
-    set_servo_position(x_servo_pin, 0.1)
-    set_servo_position(y_servo_pin, 0.1)
-    # Get the desired coordinates as integers
-    req_x = int(input("Enter x coordinate"))
-    req_y = int(input("Enter y coordinate"))
+        # Zero Servos
+        set_servo_position(x_servo_pin, 0.1)
+        set_servo_position(y_servo_pin, 0.1)
+        # Get the desired coordinates as integers
+        req_x = int(input("Enter x coordinate"))
+        req_y = int(input("Enter y coordinate"))
 
-    # Set the PID setpoints based on input
-    pid_x.setpoint = req_x
-    pid_y.setpoint = req_y
-    temp_counter = 0
-    # Loop that constantly updates vision and setpoints
-    while True:
-        ret, frame = cap.read()
-        timestamp = time.time()
-        if not ret:
-            break
+        # Set the PID setpoints based on input
+        pid_x.setpoint = req_x
+        pid_y.setpoint = req_y
+        temp_counter = 0
+        # Loop that constantly updates vision and setpoints
+        while True:
+            ret, frame = cap.read()
+            timestamp = time.time()
+            if not ret:
+                break
 
-        centroid, annotated_frame = loc.find_centroid(frame)
-        if centroid is not None:
-            x_error, y_error = loc.find_error(req_x, req_y, centroid)
-            print(f"Droplet centroid at: {centroid}")
-            print(f"Droplet error: {x_error, y_error}")
-            if temp_counter == 50:
-                cv2.imwrite("annotated_frame.jpg", frame)
-            if abs(x_error) > 10 and abs(y_error) > 10:
+            centroid, annotated_frame = loc.find_centroid(frame)
+            if centroid is not None:
+                x_error, y_error = loc.find_error(req_x, req_y, centroid)
+                print(f"Droplet centroid at: {centroid}")
+                print(f"Droplet error: {x_error, y_error}")
+                writer.writerow([timestamp, centroid[0], centroid[1], x_error, y_error])
+                    
+                if abs(x_error) < 10 and abs(y_error) < 10:
+                    print("droplet is centered")
                 adjust_servo(centroid[0],centroid[1])
-            else:
-                print("Droplet is centered")
 
-        cv2.imshow('Red Droplet Detection', annotated_frame)
-        writer.writerow([timestamp, centroid[0], centroid[1], x_error, y_error])
-        if temp_counter == 1000:
-            break
-        if cv2.waitKey(1) & 0xFF == ord('q'):
-            break
+            cv2.imshow('Red Droplet Detection', annotated_frame)
+            if temp_counter == 1000:
+                break
+            if cv2.waitKey(1) & 0xFF == ord('q'):
+                break
 
-        temp_counter+=1
+            temp_counter+=1
 
-    cap.release()
-    cv2.destroyAllWindows()
+        cap.release()
+        cv2.destroyAllWindows()
 
 
 if __name__ == "__main__":
