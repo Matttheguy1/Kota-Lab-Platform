@@ -7,6 +7,7 @@ from simple_pid import PID
 import localization as loc
 import pigpio
 import keyboard
+import csv
 
 pi = pigpio.pi()
 
@@ -14,29 +15,10 @@ pi = pigpio.pi()
 x_servo_pin = 18
 y_servo_pin = 17
 
-# Set up the servo on GPIO pin 18
-# y_servo = Servo(17)
-# x_servo = Servo(18)
+headers = ['Time', 'X Position', 'Y Position', 'X Error', 'Y Error']
 
 
-
-# Define the pulse width range for the servo,
-#Deprecated because we switched from pigpio to gpiozero
-min_PW = 1000  # Minimum pulse width in microseconds
-max_PW = 2000  # Maximum pulse width in microseconds
-
-
-# # Function that sets the position of the x servo with (-1,1) as the range
-# def set_x_position(value):
-#     # Sets servo to given value
-#     x_servo.value = value
-
-# # Function that sets the position of the y servo with (-1,1) as the range
-# def set_y_position(value):
-#     # Sets servo to given value
-#     y_servo.value = value
-
-
+filename = "PID Response.csv"
 def set_servo_position(gpio_pin, position, min_pulse=500, max_pulse=2500):
 # Ensure position is within range
     position = max(-1.0, min(1.0, position))
@@ -74,6 +56,9 @@ def adjust_servo(x, y):
 
 
 def main():
+    with open(filename, 'w') as file:
+        writer = csv.writer(file)
+        writer.writerow(headers)
 
     # Start video capture
     cap = cv2.VideoCapture(0)
@@ -92,6 +77,7 @@ def main():
     # Loop that constantly updates vision and setpoints
     while True:
         ret, frame = cap.read()
+        timestamp = time.time()
         if not ret:
             break
 
@@ -106,9 +92,9 @@ def main():
                 adjust_servo(centroid[0],centroid[1])
             else:
                 print("Droplet is centered")
-            #adjust_servo(centroid[0],centroid[1])
 
         cv2.imshow('Red Droplet Detection', annotated_frame)
+        writer.writerow([timestamp, centroid[0], centroid[1], x_error, y_error])
         if temp_counter == 1000:
             break
         if cv2.waitKey(1) & 0xFF == ord('q'):
