@@ -6,13 +6,16 @@ def find_centroid(image):
     # Convert to HSV color space
     hsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
 
-    # Define range for red color
-    # Define range for blue color
-    lower_blue = np.array([100, 150, 150])
-    upper_blue = np.array([140, 255, 255])
+    # Define the range for red color in HSV
+    lower_red1 = np.array([0, 100, 100])
+    upper_red1 = np.array([10, 255, 255])
+    lower_red2 = np.array([160, 100, 100])
+    upper_red2 = np.array([180, 255, 255])
 
     # Create mask for blue regions
-    mask = cv2.inRange(hsv, lower_blue, upper_blue)
+    mask1 = cv2.inRange(hsv, lower_red1, upper_red1)
+    mask2 = cv2.inRange(hsv, lower_red2, upper_red2)
+    mask = cv2.bitwise_or(mask1, mask2)
 
     # Clean up the mask
     kernel = np.ones((5, 5), np.uint8)
