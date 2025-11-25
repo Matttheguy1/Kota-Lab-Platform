@@ -1,0 +1,36 @@
+import pigpio
+import time
+
+class ServoController:
+    def __init__(self, gpio_pin, min_pulse=500, max_pulse=2500):
+ 
+        self.gpio_pin = gpio_pin
+        self.min_pulse = min_pulse
+        self.max_pulse = max_pulse
+        
+        # Connect to pigpio daemon
+        self.pi = pigpio.pi()
+        
+        if not self.pi.connected:
+            raise Exception("Failed to connect to pigpio daemon")
+        
+        # Set servo to middle position initially
+        self.pi.set_servo_pulsewidth(self.gpio_pin, (min_pulse + max_pulse) // 2)
+        time.sleep(0.5)
+    
+    def fully_extended(self):
+        """Rotate servo to fully extended position (maximum angle)"""
+        self.pi.set_servo_pulsewidth(self.gpio_pin, self.max_pulse)
+        print(f"Servo on GPIO {self.gpio_pin}: Fully Extended")
+    
+    def fully_retracted(self):
+        """Rotate servo to fully retracted position (minimum angle)"""
+        self.pi.set_servo_pulsewidth(self.gpio_pin, self.min_pulse)
+        print(f"Servo on GPIO {self.gpio_pin}: Fully Retracted")
+    
+    def cleanup(self):
+        """Stop servo and cleanup"""
+        self.pi.set_servo_pulsewidth(self.gpio_pin, 0)
+        self.pi.stop()
+
+
