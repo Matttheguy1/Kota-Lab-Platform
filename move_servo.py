@@ -10,8 +10,8 @@ CENTER_X = 1500
 CENTER_Y = 1500
 
 
-AMPLITUDE_X = 225  # ±22.5 degrees
-AMPLITUDE_Y = 225  # ±22.5 degrees
+AMPLITUDE_X = 260  # ±22.5 degrees
+AMPLITUDE_Y = 260  # ±22.5 degrees
 
 FREQUENCY = 0.5  # One cycle every 2 seconds
 
