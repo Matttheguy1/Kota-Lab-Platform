@@ -13,10 +13,12 @@ def find_centroid(image):
     upper_red2 = np.array([180, 255, 255])
 
     # Create mask for blue regions
+    lower_blue = np.array([100, 100, 100])
+    upper_blue = np.array([130, 255, 255])
     mask1 = cv2.inRange(hsv, lower_red1, upper_red1)
     mask2 = cv2.inRange(hsv, lower_red2, upper_red2)
     mask = cv2.bitwise_or(mask1, mask2)
-
+   # mask = cv2.inRange(hsv, lower_blue, upper_blue)
     # Clean up the mask
     kernel = np.ones((5, 5), np.uint8)
     mask = cv2.morphologyEx(mask, cv2.MORPH_OPEN, kernel)

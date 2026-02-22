@@ -11,13 +11,13 @@ def set_angle(pi, angle, SERVO_PIN = 17):
     pi.set_servo_pulsewidth(SERVO_PIN, pulse)
 
 pi = pigpio.pi()
-set_angle(pi, 90)
-set_angle(pi, 90, 18)
-time.sleep(1)
-set_angle(pi, 50, 18)
-time.sleep(5)
+#set_angle(pi, 80)
+#time.sleep(1)
+
+#time.sleep(5)
 #set_angle(pi, 70)
 set_angle(pi, 90, 18)
+set_angle(pi,90)
 time.sleep(1)
 pi.set_servo_pulsewidth(17, 0)
 pi.stop()
