@@ -2,8 +2,8 @@ import cv2
 import numpy as np
 
 # ── The "Search Zone" boundaries (in normalized units) ────────────────────────
-SEARCH_X_MIN, SEARCH_X_MAX = -50, 50
-SEARCH_Y_MIN, SEARCH_Y_MAX = -75, 75
+SEARCH_X_MIN, SEARCH_X_MAX = -53, 43
+SEARCH_Y_MIN, SEARCH_Y_MAX = -65, 75
 
 def draw_grid(image):
     """Draws the full -100 to 100 grid with the search zone highlighted."""
