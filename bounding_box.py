@@ -39,10 +39,17 @@ def detect_circle_quadrant():
             cv2.HOUGH_GRADIENT,
             dp=1,
             minDist=10,  # Increased minimum distance between circles
+<<<<<<< HEAD
             param1=200,   # Higher edge detection threshold
             param2=75,    # Much higher accumulator threshold for circle detection
             minRadius=10, # Larger minimum radius
             maxRadius=400
+=======
+            param1=100,   # Higher edge detection threshold
+            param2=25,    # Much higher accumulator threshold for circle detection
+            minRadius=20, # Larger minimum radius
+            maxRadius=150
+>>>>>>> 422d60731831c3b7f6689e516c8e9289e078a24c
         )
         
         # Process detected circles (limit to 2 best circles)
@@ -68,14 +75,14 @@ def detect_circle_quadrant():
                     quadrant = "Q3"
                 else:
                     quadrant = "Q4"
-                
+                print(quadrant)
                 # Display quadrant info
                 cv2.putText(frame, f"{quadrant}", (cx - 20, cy - r - 10),
                            cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 255, 0), 2)
         
         # Display the frame
         cv2.imshow('Circle Quadrant Detector', frame)
-        
+
         # Exit on 'q' key press
         if cv2.waitKey(1) & 0xFF == ord('q'):
             break

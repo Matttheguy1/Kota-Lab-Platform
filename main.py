@@ -27,11 +27,11 @@ def set_servo_position(gpio_pin, position, min_pulse=500, max_pulse=2500):
 
 
 # PID Constants:
-kyP = 0.0155
+kyP = 0.001
 kyI = 0.0
 kyD = 0.0
 
-kxP = 0.0155
+kxP = 0.001
 kxI = 0.0
 kxD = 0.00
 
@@ -44,7 +44,7 @@ pid_y = PID(kyP, kyI, kyD, setpoint=0, output_limits=(-1, 1))
 def adjust_servo(x, y):
     set_servo_position(x_servo_pin, pid_x(x))
     # Has to be -1 because it is reversed
-    set_servo_position(y_servo_pin, -1 * pid_y(y))
+    set_servo_position(y_servo_pin, pid_y(y))
 
 
 def generate_line_trajectory(start_x, start_y, end_x, end_y, num_points=50):
@@ -181,9 +181,9 @@ def main():
     # Start video capture
     cap = cv2.VideoCapture(0)
     
-    # Zero Servos (0.1 is the neutral position)
-    set_servo_position(x_servo_pin, 0.1)
-    set_servo_position(y_servo_pin, 0.1)
+    # Zero Servos (0 is the neutral position)
+    set_servo_position(x_servo_pin, 0)
+    set_servo_position(y_servo_pin, 0)
     
     # Choose trajectory type
     print("\n=== Droplet Trajectory Control ===")
@@ -254,6 +254,7 @@ def main():
     
     cap.release()
     cv2.destroyAllWindows()
+    pi.stop()
 
 
 if __name__ == "__main__":
