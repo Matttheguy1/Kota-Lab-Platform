@@ -127,6 +127,7 @@ def follow_trajectory(cap, trajectory, tolerance=10, max_time_per_point=30):
         while True:
             ret, frame = cap.read()
             
+            # Get rid of if errs
             if not ret:
                 print("Failed to read frame")
                 break
