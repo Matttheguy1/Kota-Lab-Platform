@@ -110,7 +110,7 @@ def draw_trajectory_on_canvas(canvas, trajectory, current_idx=0, droplet_coord=N
 # Trajectory follower with LIVE FEED
 # ─────────────────────────────────────────────
 
-def follow_trajectory(cap, trajectory, tolerance=10, max_time_per_point=30):
+def follow_trajectory(cap, trajectory, tolerance=30, max_time_per_point=30):
     for idx, (target_x, target_y) in enumerate(trajectory):
         print(f"Tracking Waypoint {idx + 1}/{len(trajectory)}: ({target_x}, {target_y})")
         
