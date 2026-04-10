@@ -23,16 +23,16 @@ def set_servo_position(gpio_pin, position, min_pulse=500, max_pulse=2500):
 #Top Servo 7 DOF
 #kyP, kyI, kyD = 0.002, 0.0, 0.00015
 #Top Servo 2 DOF
-kyP, kyI, kyD = 0.0015, 0.000, 0.00000
+kyP, kyI, kyD = 0.0018, 0.0007, 0.00000
 
 #Bottom servo 7 DOF
 #kxP, kxI, kxD = 0.002, 0.0, 0.00015
 #Bottom servo 2 DOF (0.001 P value is good)
-kxP, kxI, kxD = 0.001, 0.000, 0.00000
+kxP, kxI, kxD = 0.0005, 0.0007, 0.00000
 
 # PID Controllers:
-pid_x = PID(kxP, kxI, kxD, setpoint=0, output_limits=(-0.2, 0.2))
-pid_y = PID(kyP, kyI, kyD, setpoint=0, output_limits=(-0.2, 0.2))
+pid_x = PID(kxP, kxI, kxD, setpoint=0, output_limits=(-0.17, 0.17))
+pid_y = PID(kyP, kyI, kyD, setpoint=0, output_limits=(-0.17, 0.17))
 
 def adjust_servo(x, y):
     set_servo_position(x_servo_pin,-1* pid_x(x))
