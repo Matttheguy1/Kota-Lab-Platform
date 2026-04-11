@@ -11,8 +11,8 @@ import pigpio
 pi = pigpio.pi()
 
 # Servo Constants:
-x_servo_pin = 18
-y_servo_pin = 17
+x_servo_pin = 17
+y_servo_pin = 18
 
 # ── Physical scale calibration ────────────────────────────────────────────────
 # Physical workspace is a 125 mm x 125 mm square, mapped to +/-100 normalized
@@ -47,20 +47,20 @@ def set_servo_position(gpio_pin, position, min_pulse=500, max_pulse=2500):
 #Top Servo 7 DOF
 #kyP, kyI, kyD = 0.002, 0.0, 0.00015
 #Top Servo 2 DOF
-kyP, kyI, kyD = 0.001, 0.0, 0.0
+kyP, kyI, kyD = 0.0018, 0.0007, 0.00000
 
 #Bottom servo 7 DOF
 #kxP, kxI, kxD = 0.002, 0.0, 0.00015
-#Bottom servo 2 DOF
-kxP, kxI, kxD = 0.001, 0.0, 0.0
+#Bottom servo 2 DOF (0.001 P value is good)
+kxP, kxI, kxD = 0.0005, 0.0007, 0.00000
 
 # PID Controllers:
-pid_x = PID(kxP, kxI, kxD, setpoint=0, output_limits=(-1, 1))
-pid_y = PID(kyP, kyI, kyD, setpoint=0, output_limits=(-1, 1))
+pid_x = PID(kxP, kxI, kxD, setpoint=0, output_limits=(-0.17, 0.17))
+pid_y = PID(kyP, kyI, kyD, setpoint=0, output_limits=(-0.17, 0.17))
 
 def adjust_servo(x, y):
-    set_servo_position(x_servo_pin, pid_x(x))
-    set_servo_position(y_servo_pin, 1 * pid_y(y))
+    set_servo_position(x_servo_pin,-1* pid_x(x))
+    set_servo_position(y_servo_pin,-1 * pid_y(y))
 
 # ─────────────────────────────────────────────
 # Trajectory generators
@@ -180,7 +180,7 @@ def show_velocity_graph(timestamps, velocities):
 # Trajectory follower with LIVE FEED
 # ─────────────────────────────────────────────
 
-def follow_trajectory(cap, trajectory, tolerance=30, max_time_per_point=30):
+def follow_trajectory(cap, trajectory, tolerance=25, max_time_per_point=30):
     vel_timestamps = []
     vel_values     = []
     prev_centroid  = None
@@ -259,8 +259,8 @@ def follow_trajectory(cap, trajectory, tolerance=30, max_time_per_point=30):
 
 def main():
     cap = cv2.VideoCapture(0)
-    set_servo_position(x_servo_pin, -0.05)
-    set_servo_position(y_servo_pin, -0.05)
+    set_servo_position(x_servo_pin,-0.1)
+    set_servo_position(y_servo_pin,-0.1)
 
     print("\n=== Droplet Trajectory Control ===")
     print("1. Single point")
