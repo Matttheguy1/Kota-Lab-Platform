@@ -14,6 +14,30 @@ pi = pigpio.pi()
 x_servo_pin = 18
 y_servo_pin = 17
 
+# ── Physical scale calibration ────────────────────────────────────────────────
+# Physical workspace is a 125 mm x 125 mm square, mapped to +/-100 normalized
+# units (200 units total) on each axis.
+#   MM_PER_UNIT = 125 mm / 200 units = 0.625 mm/unit
+MM_PER_UNIT = 125.0 / 200.0   # 0.625 mm per normalized unit
+
+# Pixel-to-mm conversion factors derived from localization.py's transforms:
+#   x: 200 units / 720 px  ->  0.625 mm/unit x 200 units / 720 px ~= 0.1736 mm/px
+#   y: 200 units / 480 px  ->  0.625 mm/unit x 200 units / 480 px ~= 0.2604 mm/px
+# X and Y differ because the camera resolution is non-square (720x480),
+# while the physical workspace is square (125x125 mm).
+_MM_PER_PX_X = MM_PER_UNIT * 200.0 / 720.0   # ~= 0.1736 mm/px
+_MM_PER_PX_Y = MM_PER_UNIT * 200.0 / 480.0   # ~= 0.2604 mm/px
+
+def pixels_to_mm(dx_px, dy_px):
+    """Convert a pixel displacement vector to a real-world distance in mm.
+
+    X and Y use separate scale factors because the 125x125 mm square workspace
+    is captured at 720x480 px, making each axis's mm/px ratio different.
+    """
+    dx_mm = dx_px * _MM_PER_PX_X
+    dy_mm = dy_px * _MM_PER_PX_Y
+    return math.sqrt(dx_mm ** 2 + dy_mm ** 2)
+
 def set_servo_position(gpio_pin, position, min_pulse=500, max_pulse=2500):
     position = max(-1.0, min(1.0, position))
     pulse_width = min_pulse + (position + 1) * (max_pulse - min_pulse) / 2
@@ -128,20 +152,20 @@ def show_velocity_graph(timestamps, velocities):
     axes[0].plot(t, velocities, color='royalblue', linewidth=2)
     axes[0].fill_between(t, velocities, alpha=0.15, color='royalblue')
     axes[0].set_xlabel('Time (s)')
-    axes[0].set_ylabel('Velocity (px/s)')
+    axes[0].set_ylabel('Velocity (mm/s)')
     axes[0].set_title('Velocity vs Time')
     axes[0].grid(True, alpha=0.3)
 
     # Velocity histogram
     axes[1].hist(velocities, bins=20, color='royalblue', alpha=0.75, edgecolor='white')
-    axes[1].set_xlabel('Velocity (px/s)')
+    axes[1].set_xlabel('Velocity (mm/s)')
     axes[1].set_ylabel('Frequency')
     axes[1].set_title('Velocity Distribution')
     axes[1].grid(True, alpha=0.3)
 
-    stats = (f"Mean: {velocities.mean():.1f} px/s\n"
-             f"Max:  {velocities.max():.1f} px/s\n"
-             f"Min:  {velocities.min():.1f} px/s")
+    stats = (f"Mean: {velocities.mean():.1f} mm/s\n"
+             f"Max:  {velocities.max():.1f} mm/s\n"
+             f"Min:  {velocities.min():.1f} mm/s")
     axes[1].text(0.97, 0.97, stats, transform=axes[1].transAxes,
                  verticalalignment='top', horizontalalignment='right',
                  fontsize=9, fontfamily='monospace',
@@ -185,11 +209,13 @@ def follow_trajectory(cap, trajectory, tolerance=30, max_time_per_point=30):
                 norm_x, norm_y   = loc.pixels_to_coordinates(centroid[0], centroid[1])
                 droplet_norm     = (norm_x, norm_y)
 
-                # Velocity calculation
+                # Velocity calculation (mm/s)
                 if prev_centroid is not None and prev_time is not None:
                     dt = now - prev_time
                     if dt > 0:
-                        speed = np.linalg.norm(np.array(centroid) - np.array(prev_centroid)) / dt
+                        delta = np.array(centroid) - np.array(prev_centroid)
+                        dist_mm = pixels_to_mm(delta[0], delta[1])
+                        speed = dist_mm / dt          # mm/s
                         vel_timestamps.append(now)
                         vel_values.append(speed)
 
@@ -202,7 +228,7 @@ def follow_trajectory(cap, trajectory, tolerance=30, max_time_per_point=30):
                                (0, 255, 255), cv2.MARKER_CROSS, 20, 2)
 
                 if vel_values:
-                    cv2.putText(frame, f"Vel: {vel_values[-1]:.1f} px/s",
+                    cv2.putText(frame, f"Vel: {vel_values[-1]:.1f} mm/s",
                                 (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 0.65, (0, 255, 0), 2)
 
                 if abs(x_error) < tolerance and abs(y_error) < tolerance:
